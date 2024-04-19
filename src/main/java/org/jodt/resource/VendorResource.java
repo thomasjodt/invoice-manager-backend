@@ -53,7 +53,7 @@ public class VendorResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public VendorDto updateVendor(@PathParam("id") Long id, Vendor vendor) {
-        var v = service.findById(id);
+        Optional<Vendor> v = service.findById(id);
         if (v.isPresent()) {
             vendor.setId(id);
             vendor = service.update(vendor);
@@ -66,7 +66,7 @@ public class VendorResource {
     @DELETE
     @Path("/{id}")
     public void deleteVendor(@PathParam("id") Long id) {
-        var v = service.findById(id);
+        Optional<Vendor> v = service.findById(id);
 
         if (v.isPresent()) {
             service.delete(id);

@@ -2,17 +2,17 @@ package org.jodt.repository;
 
 import jakarta.annotation.Resource;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.*;
 import jakarta.transaction.SystemException;
 import jakarta.transaction.UserTransaction;
 import org.jodt.entity.Vendor;
-import org.jodt.models.DebtDto;
-import org.jodt.models.ResponseDTO;
-import org.jodt.models.TotalPaymentsDto;
-import org.jodt.models.VendorDto;
+import org.jodt.models.*;
+import org.jodt.service.InvoiceIService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 @ApplicationScoped
 public class VendorRepository implements IVendorRepository {
@@ -21,6 +21,9 @@ public class VendorRepository implements IVendorRepository {
 
     @Resource
     private UserTransaction transaction;
+
+    @Inject
+    private InvoiceIService invoiceService;
 
     @Override
     public ResponseDTO<List<Vendor>> getAll() {
@@ -110,25 +113,10 @@ public class VendorRepository implements IVendorRepository {
          TypedQuery<Vendor> q  = em.createQuery("SELECT v FROM Vendor v WHERE LOWER(v.fullName) LIKE LOWER(:vendorName) ORDER BY v.name ASC", Vendor.class);
          q.setParameter("vendorName", name);
 
-         Integer count = q.getResultList().size();
-
         List<Vendor> vendors = q.getResultList();
         List<VendorDto> list = new ArrayList<>();
-
-        List<TotalPaymentsDto> payments = em.createQuery("SELECT i.vendor.id, SUM(p.amount) FROM Payment p LEFT JOIN Invoice i ON p.invoiceId = i.id GROUP BY p.invoiceId", TotalPaymentsDto.class).getResultList();
-        List<DebtDto> debts = em.createQuery("SELECT i.vendor.id, SUM(i.amount) FROM Invoice i GROUP BY i.vendor.id", DebtDto.class).getResultList();
-
-
-        vendors.forEach(i -> {
-            var deudasOpt = debts.stream().filter(d -> d.getVendorId().equals(i.getId())).findFirst();
-            var pagosOpt = payments.stream().filter(p -> p.getVendorId().equals(i.getId())).findFirst();
-
-            VendorDto dto = new VendorDto(i.getId(), i.getName(), i.getFullName(), 0D);
-
-            deudasOpt.ifPresent(total -> dto.setBalance(total.getDebt()));
-            pagosOpt.ifPresent(totalPaymentsDto -> dto.setBalance(dto.getBalance() - totalPaymentsDto.getPayments()));
-            list.add(dto);
-        });
+        Integer count = vendors.size();
+        extracted(vendors, list);
 
         ResponseDTO<List<VendorDto>> response = new ResponseDTO<>();
         response.setCount(count);
@@ -139,26 +127,12 @@ public class VendorRepository implements IVendorRepository {
 
     @Override
     public ResponseDTO<List<VendorDto>> getVendorsWithBalance() {
-        List<Vendor> vendors = em.createQuery("select v from Vendor v ORDER BY v.name ASC",Vendor.class).getResultList();
+         var q = em.createQuery("select v from Vendor v ORDER BY v.name ASC",Vendor.class);
 
-        Integer count = vendors.size();
-
+        List<Vendor> vendors = q.getResultList();
         List<VendorDto> list = new ArrayList<>();
-
-        List<TotalPaymentsDto> payments = em.createQuery("SELECT i.vendor.id, SUM(p.amount) FROM Payment p LEFT JOIN Invoice i ON p.invoiceId = i.id GROUP BY p.invoiceId", TotalPaymentsDto.class).getResultList();
-        List<DebtDto> debts = em.createQuery("SELECT i.vendor.id, SUM(i.amount) FROM Invoice i GROUP BY i.vendor.id", DebtDto.class).getResultList();
-
-
-        vendors.forEach(i -> {
-            var deudasOpt = debts.stream().filter(d -> d.getVendorId().equals(i.getId())).findFirst();
-            var pagosOpt = payments.stream().filter(p -> p.getVendorId().equals(i.getId())).findFirst();
-
-            VendorDto dto = new VendorDto(i.getId(), i.getName(), i.getFullName(), 0D);
-
-            deudasOpt.ifPresent(total -> dto.setBalance(total.getDebt()));
-            pagosOpt.ifPresent(totalPaymentsDto -> dto.setBalance(dto.getBalance() - totalPaymentsDto.getPayments()));
-            list.add(dto);
-        });
+        Integer count = vendors.size();
+        extracted(vendors, list);
 
         ResponseDTO<List<VendorDto>> response = new ResponseDTO<>();
         response.setCount(count);
@@ -174,23 +148,10 @@ public class VendorRepository implements IVendorRepository {
 
          q.setMaxResults(limit);
          q.setFirstResult(offset);
+
         List<Vendor> vendors = q.getResultList();
-
         List<VendorDto> list = new ArrayList<>();
-        List<TotalPaymentsDto> payments = em.createQuery("SELECT i.vendor.id, SUM(p.amount) FROM Payment p LEFT JOIN Invoice i ON p.invoiceId = i.id GROUP BY p.invoiceId", TotalPaymentsDto.class).getResultList();
-        List<DebtDto> debts = em.createQuery("SELECT i.vendor.id, SUM(i.amount) FROM Invoice i GROUP BY i.vendor.id", DebtDto.class).getResultList();
-
-
-        vendors.forEach(i -> {
-            var deudasOpt = debts.stream().filter(d -> d.getVendorId().equals(i.getId())).findFirst();
-            var pagosOpt = payments.stream().filter(p -> p.getVendorId().equals(i.getId())).findFirst();
-
-            VendorDto dto = new VendorDto(i.getId(), i.getName(), i.getFullName(), 0D);
-
-            deudasOpt.ifPresent(total -> dto.setBalance(total.getDebt()));
-            pagosOpt.ifPresent(totalPaymentsDto -> dto.setBalance(dto.getBalance() - totalPaymentsDto.getPayments()));
-            list.add(dto);
-        });
+        extracted(vendors, list);
 
         ResponseDTO<List<VendorDto>> response = new ResponseDTO<>();
         response.setCount(count);
@@ -202,18 +163,38 @@ public class VendorRepository implements IVendorRepository {
     @Override
     public VendorDto getVendorWithBalanceById(Long id) {
         Vendor vendor = this.findById(id);
+         ResponseDTO<List<InvoiceDto>> invoices = invoiceService.getInvoicesByVendorId(id);
 
-        List<TotalPaymentsDto> payments = em.createQuery("SELECT i.vendor.id, SUM(p.amount) FROM Payment p LEFT JOIN Invoice i ON p.invoiceId = i.id GROUP BY p.invoiceId", TotalPaymentsDto.class).getResultList();
-        List<DebtDto> debts = em.createQuery("SELECT i.vendor.id, SUM(i.amount) FROM Invoice i GROUP BY i.vendor.id", DebtDto.class).getResultList();
+        AtomicReference<Double> allPaid = new AtomicReference<>(0D);
+        AtomicReference<Double> allAmount = new AtomicReference<>(0D);
 
-        var deudasOpt = debts.stream().filter(d -> d.getVendorId().equals(id)).findFirst();
-        var pagosOpt = payments.stream().filter(p -> p.getVendorId().equals(id)).findFirst();
+        invoices.getData().forEach((i) -> {
+            allAmount.updateAndGet(v -> v + i.getAmount());
+            i.getPayments().forEach(p -> allPaid.updateAndGet(v -> v + p.getAmount()));
+        });
 
         VendorDto dto = new VendorDto(vendor.getId(), vendor.getName(), vendor.getFullName(), 0D);
-
-        deudasOpt.ifPresent(total -> dto.setBalance(total.getDebt()));
-        pagosOpt.ifPresent(totalPaymentsDto -> dto.setBalance(dto.getBalance() - totalPaymentsDto.getPayments()));
+        dto.setBalance(allAmount.get() - allPaid.get());
 
         return dto;
+    }
+
+    private void extracted(List<Vendor> vendors, List<VendorDto> list) {
+        vendors.forEach(i -> {
+            ResponseDTO<List<InvoiceDto>> invoices = invoiceService.getInvoicesByVendorId(i.getId());
+
+            AtomicReference<Double> allPaid = new AtomicReference<>(0D);
+            AtomicReference<Double> allAmount = new AtomicReference<>(0D);
+
+            invoices.getData().forEach((invoice) -> {
+                allAmount.updateAndGet(v -> v + invoice.getAmount());
+                invoice.getPayments().forEach(p -> allPaid.updateAndGet(v -> v + p.getAmount()));
+            });
+
+            VendorDto dto = new VendorDto(i.getId(), i.getName(), i.getFullName(), 0D);
+            dto.setBalance(allAmount.get() - allPaid.get());
+
+            list.add(dto);
+        });
     }
 }

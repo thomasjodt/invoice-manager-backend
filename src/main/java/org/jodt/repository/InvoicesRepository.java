@@ -22,7 +22,7 @@ public class InvoicesRepository implements InvoiceIRepository {
 
     @Override
     public ResponseDTO<List<Invoice>> getAll() {
-        List<Invoice> list = em.createQuery("select i from Invoice i", Invoice.class).getResultList();
+        List<Invoice> list = em.createQuery("select i from Invoice i ORDER BY i.emissionDate DESC", Invoice.class).getResultList();
         Integer count = list.size();
 
         ResponseDTO<List<Invoice>> response = new ResponseDTO<>();
