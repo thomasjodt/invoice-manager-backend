@@ -3,6 +3,7 @@ package org.jodt.service;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jodt.entity.Payment;
+import org.jodt.models.ResponseDTO;
 import org.jodt.repository.IPaymentRepository;
 import org.jodt.repository.IRepository;
 
@@ -15,12 +16,12 @@ public class PaymentService implements IPaymentService {
     IPaymentRepository repository;
 
     @Override
-    public List<Payment> getAll() {
+    public ResponseDTO<List<Payment>> getAll() {
         return repository.getAll();
     }
 
     @Override
-    public List<Payment> getAll(Integer page, Integer offset) {
+    public ResponseDTO<List<Payment>> getAll(Integer page, Integer offset) {
         return repository.getAll(page, offset);
     }
 
@@ -44,7 +45,7 @@ public class PaymentService implements IPaymentService {
         repository.delete(id);
     }
 
-    public List<Payment> getPaymentsByInvoiceId(Long id) {
+    public ResponseDTO<List<Payment>> getPaymentsByInvoiceId(Long id) {
         return repository.getPaymentsByInvoiceId(id);
     }
 }

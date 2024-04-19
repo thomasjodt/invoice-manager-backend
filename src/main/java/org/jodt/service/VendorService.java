@@ -3,6 +3,7 @@ package org.jodt.service;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jodt.entity.Vendor;
+import org.jodt.models.ResponseDTO;
 import org.jodt.models.VendorDto;
 import org.jodt.repository.IVendorRepository;
 
@@ -15,12 +16,12 @@ public class VendorService implements IVendorService {
     IVendorRepository repository;
 
     @Override
-    public List<Vendor> getAll() {
+    public ResponseDTO<List<Vendor>> getAll() {
         return repository.getAll();
     }
 
     @Override
-    public List<Vendor> getAll(Integer page, Integer offset) {
+    public ResponseDTO<List<Vendor>> getAll(Integer page, Integer offset) {
         return repository.getAll(page, offset);
     }
 
@@ -45,17 +46,17 @@ public class VendorService implements IVendorService {
     }
 
     @Override
-    public List<VendorDto> findByName(String vendorName) {
+    public ResponseDTO<List<VendorDto>> findByName(String vendorName) {
         return repository.findByName('%' + vendorName + '%');
     }
 
     @Override
-    public List<VendorDto> getVendorsWithBalance() {
+    public ResponseDTO<List<VendorDto>> getVendorsWithBalance() {
         return repository.getVendorsWithBalance();
     }
 
     @Override
-    public List<VendorDto> getVendorsWithBalance(Integer limit, Integer offset) {
+    public ResponseDTO<List<VendorDto>> getVendorsWithBalance(Integer limit, Integer offset) {
         return repository.getVendorsWithBalance(limit, offset);
     }
 

@@ -4,6 +4,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.jodt.entity.Vendor;
+import org.jodt.models.ResponseDTO;
 import org.jodt.models.VendorDto;
 import org.jodt.service.IVendorService;
 
@@ -17,7 +18,11 @@ public class VendorResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<VendorDto> getVendors(@QueryParam("name") String name, @QueryParam("page") Integer page, @QueryParam("offset") Integer offset) {
+    public ResponseDTO<List<VendorDto>> getVendors(
+        @QueryParam("name") String name,
+        @QueryParam("page") Integer page,
+        @QueryParam("offset") Integer offset
+    ) {
 
         if (name != null && !name.isBlank()) return service.findByName(name);
         if (page == null) return  service.getVendorsWithBalance();

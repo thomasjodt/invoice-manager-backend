@@ -5,6 +5,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.jodt.entity.Invoice;
 import org.jodt.models.InvoiceDto;
+import org.jodt.models.ResponseDTO;
 import org.jodt.service.InvoiceIService;
 
 import java.util.List;
@@ -17,7 +18,7 @@ public class InvoiceResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<InvoiceDto> getInvoices(@QueryParam("page") Integer page, @QueryParam("offset") Integer offset) {
+    public ResponseDTO<List<InvoiceDto>> getInvoices(@QueryParam("page") Integer page, @QueryParam("offset") Integer offset) {
         if (page == null) return  service.getAllInvoices();
 
         if (page == 0) page = 1;
@@ -72,7 +73,7 @@ public class InvoiceResource {
     @GET
     @Path("/vendor/{vendorId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<InvoiceDto> getInvoicesByVendor(@PathParam("vendorId") Long id) {
+    public ResponseDTO<List<InvoiceDto>> getInvoicesByVendor(@PathParam("vendorId") Long id) {
         return service.getInvoicesByVendorId(id);
     }
 }

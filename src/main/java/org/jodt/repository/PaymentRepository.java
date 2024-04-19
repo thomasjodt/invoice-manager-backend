@@ -4,9 +4,11 @@ import jakarta.annotation.Resource;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
 import jakarta.transaction.SystemException;
 import jakarta.transaction.UserTransaction;
 import org.jodt.entity.Payment;
+import org.jodt.models.ResponseDTO;
 
 import java.util.List;
 
@@ -19,16 +21,31 @@ public class PaymentRepository implements IPaymentRepository {
     private UserTransaction transaction;
 
     @Override
-    public List<Payment> getAll() {
-        return em.createQuery("SELECT p FROM Payment p", Payment.class).getResultList();
+    public ResponseDTO<List<Payment>> getAll() {
+        TypedQuery<Payment> q =  em.createQuery("SELECT p FROM Payment p", Payment.class);
+        var list = q.getResultList();
+        Integer count = list.size();
+
+        ResponseDTO<List<Payment>> response = new ResponseDTO<>();
+        response.setCount(count);
+        response.setData(list);
+        return response;
     }
 
     @Override
-    public List<Payment> getAll(Integer limit, Integer offset) {
+    public ResponseDTO<List<Payment>> getAll(Integer limit, Integer offset) {
         var q = em.createQuery("SELECT p FROM Payment p", Payment.class);
+        Integer count = q.getResultList().size();
+
         q.setMaxResults(limit);
         q.setFirstResult(offset);
-        return q.getResultList();
+        List<Payment> list = q.getResultList();
+
+        ResponseDTO<List<Payment>> response = new ResponseDTO<>();
+        response.setCount(count);
+        response.setData(list);
+
+        return response;
     }
 
     @Override
@@ -87,9 +104,17 @@ public class PaymentRepository implements IPaymentRepository {
         }
     }
 
-    public List<Payment> getPaymentsByInvoiceId(Long id) {
-        return em.createQuery("select p from Payment p where p.invoiceId = ?1", Payment.class)
-            .setParameter(1,id)
-            .getResultList();
+    public ResponseDTO<List<Payment>> getPaymentsByInvoiceId(Long id) {
+        TypedQuery<Payment> q = em.createQuery("select p from Payment p where p.invoiceId = ?1", Payment.class);
+        q.setParameter(1,id);
+
+        List<Payment> list = q.getResultList();
+        Integer count = list.size();
+
+        ResponseDTO<List<Payment>> response = new ResponseDTO<>();
+        response.setData(list);
+        response.setCount(count);
+
+        return  response;
     }
 }

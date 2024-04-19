@@ -7,6 +7,7 @@ import jakarta.transaction.SystemException;
 import jakarta.transaction.UserTransaction;
 import org.jodt.entity.Vendor;
 import org.jodt.models.DebtDto;
+import org.jodt.models.ResponseDTO;
 import org.jodt.models.TotalPaymentsDto;
 import org.jodt.models.VendorDto;
 
@@ -22,16 +23,30 @@ public class VendorRepository implements IVendorRepository {
     private UserTransaction transaction;
 
     @Override
-    public List<Vendor> getAll() {
-        return em.createQuery("select v from Vendor v", Vendor.class).getResultList();
+    public ResponseDTO<List<Vendor>> getAll() {
+        List<Vendor> result = em.createQuery("select v from Vendor v ORDER BY v.name ASC", Vendor.class).getResultList();
+
+        ResponseDTO<List<Vendor>> response = new ResponseDTO<>();
+        Integer count = result.size();
+        response.setCount(count);
+        response.setData(result);
+
+        return response;
     }
 
     @Override
-    public List<Vendor> getAll(Integer limit, Integer offset) {
-        var q = em.createQuery("select v from Vendor v", Vendor.class);
+    public ResponseDTO<List<Vendor>> getAll(Integer limit, Integer offset) {
+        var q = em.createQuery("select v from Vendor v ORDER BY v.name ASC", Vendor.class);
+        Integer count = q.getResultList().size();
+
         q.setMaxResults(limit);
         q.setFirstResult(offset);
-        return q.getResultList();
+        List<Vendor> vendors = q.getResultList();
+
+        ResponseDTO<List<Vendor>> response = new ResponseDTO<>();
+        response.setCount(count);
+        response.setData(vendors);
+        return response;
     }
 
     @Override
@@ -91,11 +106,13 @@ public class VendorRepository implements IVendorRepository {
     }
 
     @Override
-    public List<VendorDto> findByName(String name) {
-        List<Vendor> vendors  = em.createQuery("SELECT v FROM Vendor v WHERE LOWER(v.fullName) LIKE LOWER(:vendorName)", Vendor.class)
-            .setParameter("vendorName", name)
-            .getResultList();
+    public ResponseDTO<List<VendorDto>> findByName(String name) {
+         TypedQuery<Vendor> q  = em.createQuery("SELECT v FROM Vendor v WHERE LOWER(v.fullName) LIKE LOWER(:vendorName) ORDER BY v.name ASC", Vendor.class);
+         q.setParameter("vendorName", name);
 
+         Integer count = q.getResultList().size();
+
+        List<Vendor> vendors = q.getResultList();
         List<VendorDto> list = new ArrayList<>();
 
         List<TotalPaymentsDto> payments = em.createQuery("SELECT i.vendor.id, SUM(p.amount) FROM Payment p LEFT JOIN Invoice i ON p.invoiceId = i.id GROUP BY p.invoiceId", TotalPaymentsDto.class).getResultList();
@@ -113,12 +130,19 @@ public class VendorRepository implements IVendorRepository {
             list.add(dto);
         });
 
-        return  list;
+        ResponseDTO<List<VendorDto>> response = new ResponseDTO<>();
+        response.setCount(count);
+        response.setData(list);
+
+        return  response;
     }
 
     @Override
-    public List<VendorDto> getVendorsWithBalance() {
-        List<Vendor> vendors = em.createQuery("select v from Vendor v",Vendor.class).getResultList();
+    public ResponseDTO<List<VendorDto>> getVendorsWithBalance() {
+        List<Vendor> vendors = em.createQuery("select v from Vendor v ORDER BY v.name ASC",Vendor.class).getResultList();
+
+        Integer count = vendors.size();
+
         List<VendorDto> list = new ArrayList<>();
 
         List<TotalPaymentsDto> payments = em.createQuery("SELECT i.vendor.id, SUM(p.amount) FROM Payment p LEFT JOIN Invoice i ON p.invoiceId = i.id GROUP BY p.invoiceId", TotalPaymentsDto.class).getResultList();
@@ -136,15 +160,21 @@ public class VendorRepository implements IVendorRepository {
             list.add(dto);
         });
 
-        return  list;
+        ResponseDTO<List<VendorDto>> response = new ResponseDTO<>();
+        response.setCount(count);
+        response.setData(list);
+
+        return  response;
     }
 
     @Override
-    public List<VendorDto> getVendorsWithBalance(Integer limit, Integer offset) {
-        List<Vendor> vendors = em.createQuery("select v from Vendor v",Vendor.class)
-            .setMaxResults(limit)
-            .setFirstResult(offset)
-            .getResultList();
+    public ResponseDTO<List<VendorDto>> getVendorsWithBalance(Integer limit, Integer offset) {
+         TypedQuery<Vendor> q = em.createQuery("select v from Vendor v ORDER BY v.name ASC",Vendor.class);
+         Integer count = q.getResultList().size();
+
+         q.setMaxResults(limit);
+         q.setFirstResult(offset);
+        List<Vendor> vendors = q.getResultList();
 
         List<VendorDto> list = new ArrayList<>();
         List<TotalPaymentsDto> payments = em.createQuery("SELECT i.vendor.id, SUM(p.amount) FROM Payment p LEFT JOIN Invoice i ON p.invoiceId = i.id GROUP BY p.invoiceId", TotalPaymentsDto.class).getResultList();
@@ -162,7 +192,11 @@ public class VendorRepository implements IVendorRepository {
             list.add(dto);
         });
 
-        return  list;
+        ResponseDTO<List<VendorDto>> response = new ResponseDTO<>();
+        response.setCount(count);
+        response.setData(list);
+
+        return  response;
     }
 
     @Override

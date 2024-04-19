@@ -5,6 +5,7 @@ import jakarta.inject.Inject;
 import org.jodt.entity.Invoice;
 import org.jodt.entity.Payment;
 import org.jodt.models.InvoiceDto;
+import org.jodt.models.ResponseDTO;
 import org.jodt.repository.IPaymentRepository;
 import org.jodt.repository.InvoiceIRepository;
 
@@ -20,12 +21,12 @@ public class InvoiceService implements InvoiceIService {
     IPaymentRepository paymentRepository;
 
     @Override
-    public List<Invoice> getAll() {
+    public ResponseDTO<List<Invoice>> getAll() {
         return repository.getAll();
     }
 
     @Override
-    public List<Invoice> getAll(Integer limit, Integer offset) {
+    public ResponseDTO<List<Invoice>> getAll(Integer limit, Integer offset) {
         return repository.getAll(limit,offset);
     }
 
@@ -50,23 +51,37 @@ public class InvoiceService implements InvoiceIService {
     }
 
     @Override
-    public List<InvoiceDto> getAllInvoices() {
-        List<Invoice> invoiceList = this.getAll();
+    public ResponseDTO<List<InvoiceDto>> getAllInvoices() {
+        ResponseDTO<List<Invoice>> res = this.getAll();
+        List<Invoice> invoiceList = res.getData();
 
-        return invoiceList.stream().map(i -> {
-            List<Payment> payments = paymentRepository.getPaymentsByInvoiceId(i.getId());
+        var list = invoiceList.stream().map(i -> {
+            List<Payment> payments = paymentRepository.getPaymentsByInvoiceId(i.getId()).getData();
             return getInvoiceDto(i, payments);
         }).toList();
+
+        ResponseDTO<List<InvoiceDto>> response = new ResponseDTO<>();
+        response.setCount(res.getCount());
+        response.setData(list);
+
+        return response;
     }
 
     @Override
-    public List<InvoiceDto> getAllInvoices(Integer limit, Integer offset) {
-        List<Invoice> invoiceList = this.getAll(limit, offset);
+    public ResponseDTO<List<InvoiceDto>> getAllInvoices(Integer limit, Integer offset) {
+        ResponseDTO<List<Invoice>> res = this.getAll(limit, offset);
+        List<Invoice> invoiceList = res.getData();
 
-        return invoiceList.stream().map(i -> {
-            List<Payment> payments = paymentRepository.getPaymentsByInvoiceId(i.getId());
+        List<InvoiceDto> list = invoiceList.stream().map(i -> {
+            List<Payment> payments = paymentRepository.getPaymentsByInvoiceId(i.getId()).getData();
             return getInvoiceDto(i, payments);
         }).toList();
+
+        ResponseDTO<List<InvoiceDto>> response = new ResponseDTO<>();
+        response.setCount(res.getCount());
+        response.setData(list);
+
+        return response;
     }
 
     @Override
@@ -76,20 +91,27 @@ public class InvoiceService implements InvoiceIService {
 
         if (i.isPresent()) {
             Invoice invoice = i.get();
-            List<Payment> payments = paymentRepository.getPaymentsByInvoiceId(invoice.getId());
+            List<Payment> payments = paymentRepository.getPaymentsByInvoiceId(invoice.getId()).getData();
             dto = getInvoiceDto(invoice, payments);
         }
         return Optional.ofNullable(dto);
     }
 
     @Override
-    public List<InvoiceDto> getInvoicesByVendorId(Long id) {
-        List<Invoice> invoiceList = repository.getInvoicesByVendor(id);
+    public ResponseDTO<List<InvoiceDto>> getInvoicesByVendorId(Long id) {
+        var res = repository.getInvoicesByVendor(id);
+        var invoiceList = res.getData();
 
-        return invoiceList.stream().map(i -> {
-            List<Payment> payments = paymentRepository.getPaymentsByInvoiceId(i.getId());
+        var list = invoiceList.stream().map(i -> {
+            List<Payment> payments = paymentRepository.getPaymentsByInvoiceId(i.getId()).getData();
             return getInvoiceDto(i, payments);
         }).toList();
+
+        ResponseDTO<List<InvoiceDto>> response = new ResponseDTO<>();
+        response.setCount(res.getCount());
+        response.setData(list);
+
+        return response;
     }
 
     private static InvoiceDto getInvoiceDto(Invoice invoice, List<Payment> payments) {

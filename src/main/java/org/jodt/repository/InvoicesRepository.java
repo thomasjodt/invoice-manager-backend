@@ -8,6 +8,7 @@ import jakarta.persistence.TypedQuery;
 import jakarta.transaction.SystemException;
 import jakarta.transaction.UserTransaction;
 import org.jodt.entity.Invoice;
+import org.jodt.models.ResponseDTO;
 
 import java.util.List;
 
@@ -20,16 +21,31 @@ public class InvoicesRepository implements InvoiceIRepository {
     private UserTransaction transaction;
 
     @Override
-    public List<Invoice> getAll() {
-        return em.createQuery("select i from Invoice i", Invoice.class).getResultList();
+    public ResponseDTO<List<Invoice>> getAll() {
+        List<Invoice> list = em.createQuery("select i from Invoice i", Invoice.class).getResultList();
+        Integer count = list.size();
+
+        ResponseDTO<List<Invoice>> response = new ResponseDTO<>();
+        response.setCount(count);
+        response.setData(list);
+
+        return response;
     }
 
     @Override
-    public List<Invoice> getAll(Integer limit, Integer offset) {
+    public ResponseDTO<List<Invoice>> getAll(Integer limit, Integer offset) {
         var q = em.createQuery("select i from Invoice i", Invoice.class);
+        Integer count = q.getResultList().size();
+
         q.setMaxResults(limit);
         q.setFirstResult(offset);
-        return q.getResultList();
+        List<Invoice> list = q.getResultList();
+
+        ResponseDTO<List<Invoice>> response = new ResponseDTO<>();
+        response.setCount(count);
+        response.setData(list);
+
+        return response;
     }
 
     @Override
@@ -89,9 +105,17 @@ public class InvoicesRepository implements InvoiceIRepository {
     }
 
     @Override
-    public List<Invoice> getInvoicesByVendor(Long vendorId) {
+    public ResponseDTO<List<Invoice>> getInvoicesByVendor(Long vendorId) {
         TypedQuery<Invoice> q = em.createQuery("SELECT i FROM Invoice i WHERE i.vendor.id=:vendorId", Invoice.class);
         q.setParameter("vendorId", vendorId);
-        return q.getResultList();
+
+        List<Invoice> list = q.getResultList();
+        Integer count = list.size();
+
+        ResponseDTO<List<Invoice>> response = new ResponseDTO<>();
+        response.setCount(count);
+        response.setData(list);
+
+        return response;
     }
 }

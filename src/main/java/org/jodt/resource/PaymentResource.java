@@ -4,6 +4,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.jodt.entity.Payment;
+import org.jodt.models.ResponseDTO;
 import org.jodt.service.IPaymentService;
 
 import java.util.List;
@@ -17,7 +18,11 @@ public class PaymentResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Payment> getPayments(@QueryParam("vendor") Long id, @QueryParam("page") Integer page, @QueryParam("offset") Integer offset) {
+    public ResponseDTO<List<Payment>> getPayments(
+        @QueryParam("vendor") Long id,
+        @QueryParam("page") Integer page,
+        @QueryParam("offset") Integer offset
+    ) {
         if (id != null && id > 0) return service.getPaymentsByInvoiceId(id);
         if (page == null) return  service.getAll();
 
