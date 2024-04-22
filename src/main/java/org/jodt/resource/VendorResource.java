@@ -23,20 +23,25 @@ public class VendorResource {
         @QueryParam("page") Integer page,
         @QueryParam("offset") Integer offset
     ) {
-
-        if (name != null && !name.isBlank()) return service.findByName(name);
-        if (page == null) return  service.getVendorsWithBalance();
+        if (page == null) {
+            return (name != null && !name.isBlank())
+                ? service.findByName(name)
+                : service.getAll();
+        }
 
         if (page == 0) page = 1;
-        if(offset == null) offset = 5;
-        return service.getVendorsWithBalance(offset, (page - 1) * offset);
+        if (offset == null) offset = 5;
+
+        return (name != null && !name.isBlank())
+            ? service.findByName(name, offset, (page - 1) * offset)
+            : service.getAll(offset, (page - 1) * offset);
     }
 
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public VendorDto getVendor(@PathParam("id") Long id) {
-        Optional<VendorDto> vendor = Optional.ofNullable(service.getVendorWithBalanceById(id));
+        Optional<VendorDto> vendor = service.findById(id);
         return vendor.orElse(null);
     }
 
@@ -44,8 +49,9 @@ public class VendorResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public VendorDto saveVendor(Vendor vendor) {
-        vendor = service.save(vendor);
-        return service.getVendorWithBalanceById(vendor.getId());
+        var dto = new VendorDto(vendor.getId(), vendor.getName(), vendor.getFullName(), 0D);
+        dto = service.save(dto);
+        return service.findById(dto.getId()).orElse(null);
     }
 
     @PUT
@@ -53,11 +59,14 @@ public class VendorResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public VendorDto updateVendor(@PathParam("id") Long id, Vendor vendor) {
-        Optional<Vendor> v = service.findById(id);
+        Optional<VendorDto> v = service.findById(id);
+
         if (v.isPresent()) {
-            vendor.setId(id);
-            vendor = service.update(vendor);
-            return getVendor(vendor.getId());
+            VendorDto dto = v.get();
+            dto.setId(id);
+            dto.setName(vendor.getName());
+            dto.setFullName(vendor.getFullName());
+            return service.update(dto);
         } else {
             return null;
         }
@@ -66,7 +75,7 @@ public class VendorResource {
     @DELETE
     @Path("/{id}")
     public void deleteVendor(@PathParam("id") Long id) {
-        Optional<Vendor> v = service.findById(id);
+        Optional<VendorDto> v = service.findById(id);
 
         if (v.isPresent()) {
             service.delete(id);
