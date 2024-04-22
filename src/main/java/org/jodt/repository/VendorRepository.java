@@ -1,18 +1,14 @@
 package org.jodt.repository;
 
-import jakarta.annotation.Resource;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
+import org.jodt.models.*;
 import jakarta.persistence.*;
+import org.jodt.entity.Vendor;
+import jakarta.annotation.Resource;
 import jakarta.transaction.SystemException;
 import jakarta.transaction.UserTransaction;
-import org.jodt.entity.Vendor;
-import org.jodt.models.*;
-import org.jodt.service.InvoiceIService;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 @ApplicationScoped
 public class VendorRepository implements IVendorRepository {
@@ -21,9 +17,6 @@ public class VendorRepository implements IVendorRepository {
 
     @Resource
     private UserTransaction transaction;
-
-    @Inject
-    private InvoiceIService invoiceService;
 
     @Override
     public ResponseDTO<List<Vendor>> getAll() {
@@ -39,7 +32,7 @@ public class VendorRepository implements IVendorRepository {
 
     @Override
     public ResponseDTO<List<Vendor>> getAll(Integer limit, Integer offset) {
-        var q = em.createQuery("select v from Vendor v ORDER BY v.name ASC", Vendor.class);
+        TypedQuery<Vendor> q = em.createQuery("select v from Vendor v ORDER BY v.name ASC", Vendor.class);
         Integer count = q.getResultList().size();
 
         q.setMaxResults(limit);
@@ -109,92 +102,34 @@ public class VendorRepository implements IVendorRepository {
     }
 
     @Override
-    public ResponseDTO<List<VendorDto>> findByName(String name) {
+    public ResponseDTO<List<Vendor>> findByName(String name) {
          TypedQuery<Vendor> q  = em.createQuery("SELECT v FROM Vendor v WHERE LOWER(v.fullName) LIKE LOWER(:vendorName) ORDER BY v.name ASC", Vendor.class);
          q.setParameter("vendorName", name);
 
         List<Vendor> vendors = q.getResultList();
-        List<VendorDto> list = new ArrayList<>();
         Integer count = vendors.size();
-        extracted(vendors, list);
 
-        ResponseDTO<List<VendorDto>> response = new ResponseDTO<>();
+        ResponseDTO<List<Vendor>> response = new ResponseDTO<>();
         response.setCount(count);
-        response.setData(list);
+        response.setData(vendors);
 
         return  response;
     }
 
     @Override
-    public ResponseDTO<List<VendorDto>> getVendorsWithBalance() {
-         var q = em.createQuery("select v from Vendor v ORDER BY v.name ASC",Vendor.class);
+    public ResponseDTO<List<Vendor>> findByName(String name, Integer limit, Integer offset) {
+        TypedQuery<Vendor> q  = em.createQuery("SELECT v FROM Vendor v WHERE LOWER(v.fullName) LIKE LOWER(:vendorName) ORDER BY v.name ASC", Vendor.class);
+        q.setParameter("vendorName", name);
+        Integer count = q.getResultList().size();
 
+        q.setMaxResults(limit);
+        q.setFirstResult(offset);
         List<Vendor> vendors = q.getResultList();
-        List<VendorDto> list = new ArrayList<>();
-        Integer count = vendors.size();
-        extracted(vendors, list);
 
-        ResponseDTO<List<VendorDto>> response = new ResponseDTO<>();
+        ResponseDTO<List<Vendor>> response = new ResponseDTO<>();
         response.setCount(count);
-        response.setData(list);
+        response.setData(vendors);
 
         return  response;
-    }
-
-    @Override
-    public ResponseDTO<List<VendorDto>> getVendorsWithBalance(Integer limit, Integer offset) {
-         TypedQuery<Vendor> q = em.createQuery("select v from Vendor v ORDER BY v.name ASC",Vendor.class);
-         Integer count = q.getResultList().size();
-
-         q.setMaxResults(limit);
-         q.setFirstResult(offset);
-
-        List<Vendor> vendors = q.getResultList();
-        List<VendorDto> list = new ArrayList<>();
-        extracted(vendors, list);
-
-        ResponseDTO<List<VendorDto>> response = new ResponseDTO<>();
-        response.setCount(count);
-        response.setData(list);
-
-        return  response;
-    }
-
-    @Override
-    public VendorDto getVendorWithBalanceById(Long id) {
-        Vendor vendor = this.findById(id);
-         ResponseDTO<List<InvoiceDto>> invoices = invoiceService.getInvoicesByVendorId(id);
-
-        AtomicReference<Double> allPaid = new AtomicReference<>(0D);
-        AtomicReference<Double> allAmount = new AtomicReference<>(0D);
-
-        invoices.getData().forEach((i) -> {
-            allAmount.updateAndGet(v -> v + i.getAmount());
-            i.getPayments().forEach(p -> allPaid.updateAndGet(v -> v + p.getAmount()));
-        });
-
-        VendorDto dto = new VendorDto(vendor.getId(), vendor.getName(), vendor.getFullName(), 0D);
-        dto.setBalance(allAmount.get() - allPaid.get());
-
-        return dto;
-    }
-
-    private void extracted(List<Vendor> vendors, List<VendorDto> list) {
-        vendors.forEach(i -> {
-            ResponseDTO<List<InvoiceDto>> invoices = invoiceService.getInvoicesByVendorId(i.getId());
-
-            AtomicReference<Double> allPaid = new AtomicReference<>(0D);
-            AtomicReference<Double> allAmount = new AtomicReference<>(0D);
-
-            invoices.getData().forEach((invoice) -> {
-                allAmount.updateAndGet(v -> v + invoice.getAmount());
-                invoice.getPayments().forEach(p -> allPaid.updateAndGet(v -> v + p.getAmount()));
-            });
-
-            VendorDto dto = new VendorDto(i.getId(), i.getName(), i.getFullName(), 0D);
-            dto.setBalance(allAmount.get() - allPaid.get());
-
-            list.add(dto);
-        });
     }
 }
