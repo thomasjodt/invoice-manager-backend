@@ -20,29 +20,14 @@ public class VendorRepository implements IVendorRepository {
 
     @Override
     public ResponseDTO<List<Vendor>> getAll() {
-        List<Vendor> result = em.createQuery("select v from Vendor v ORDER BY v.name ASC", Vendor.class).getResultList();
-
-        ResponseDTO<List<Vendor>> response = new ResponseDTO<>();
-        Integer count = result.size();
-        response.setCount(count);
-        response.setData(result);
-
-        return response;
+        TypedQuery<Vendor> q = em.createQuery("select v from Vendor v ORDER BY v.name ASC", Vendor.class);
+        return getResponseDTO(q);
     }
 
     @Override
     public ResponseDTO<List<Vendor>> getAll(Integer limit, Integer offset) {
         TypedQuery<Vendor> q = em.createQuery("select v from Vendor v ORDER BY v.name ASC", Vendor.class);
-        Integer count = q.getResultList().size();
-
-        q.setMaxResults(limit);
-        q.setFirstResult(offset);
-        List<Vendor> vendors = q.getResultList();
-
-        ResponseDTO<List<Vendor>> response = new ResponseDTO<>();
-        response.setCount(count);
-        response.setData(vendors);
-        return response;
+        return getListResponseDTO(limit, offset, q);
     }
 
     @Override
@@ -105,21 +90,17 @@ public class VendorRepository implements IVendorRepository {
     public ResponseDTO<List<Vendor>> findByName(String name) {
          TypedQuery<Vendor> q  = em.createQuery("SELECT v FROM Vendor v WHERE LOWER(v.fullName) LIKE LOWER(:vendorName) ORDER BY v.name ASC", Vendor.class);
          q.setParameter("vendorName", name);
-
-        List<Vendor> vendors = q.getResultList();
-        Integer count = vendors.size();
-
-        ResponseDTO<List<Vendor>> response = new ResponseDTO<>();
-        response.setCount(count);
-        response.setData(vendors);
-
-        return  response;
+        return getResponseDTO(q);
     }
 
     @Override
     public ResponseDTO<List<Vendor>> findByName(String name, Integer limit, Integer offset) {
         TypedQuery<Vendor> q  = em.createQuery("SELECT v FROM Vendor v WHERE LOWER(v.fullName) LIKE LOWER(:vendorName) ORDER BY v.name ASC", Vendor.class);
         q.setParameter("vendorName", name);
+        return getListResponseDTO(limit, offset, q);
+    }
+
+    private static ResponseDTO<List<Vendor>> getListResponseDTO(Integer limit, Integer offset, TypedQuery<Vendor> q) {
         Integer count = q.getResultList().size();
 
         q.setMaxResults(limit);
@@ -130,6 +111,15 @@ public class VendorRepository implements IVendorRepository {
         response.setCount(count);
         response.setData(vendors);
 
-        return  response;
+        return response;
+    }
+    private static ResponseDTO<List<Vendor>> getResponseDTO(TypedQuery<Vendor> q) {
+        List<Vendor> vendors = q.getResultList();
+        Integer count = vendors.size();
+        ResponseDTO<List<Vendor>> response = new ResponseDTO<>();
+        response.setCount(count);
+        response.setData(vendors);
+
+        return response;
     }
 }
