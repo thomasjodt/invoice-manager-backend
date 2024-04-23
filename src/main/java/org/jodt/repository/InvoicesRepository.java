@@ -121,6 +121,18 @@ public class InvoicesRepository implements InvoiceIRepository {
 
     @Override
     public ResponseDTO<List<Invoice>> getInvoicesByVendor(Long vendorId, Integer limit, Integer offset) {
-        return null;
+        TypedQuery<Invoice> q = em.createQuery("SELECT i FROM Invoice i WHERE i.vendor.id=:vendorId ORDER BY i.emissionDate DESC", Invoice.class);
+        q.setParameter("vendorId", vendorId);
+        Integer count = q.getResultList().size();
+
+        q.setMaxResults(limit);
+        q.setFirstResult(offset);
+        List<Invoice> list = q.getResultList();
+
+        ResponseDTO<List<Invoice>> response = new ResponseDTO<>();
+        response.setCount(count);
+        response.setData(list);
+
+        return response;
     }
 }
