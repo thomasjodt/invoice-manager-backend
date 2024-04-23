@@ -18,19 +18,30 @@ public class InvoiceResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public ResponseDTO<List<InvoiceDto>> getInvoices(@QueryParam("page") Integer page, @QueryParam("offset") Integer offset) {
-        if (page == null) return  service.getAllInvoices();
+    public ResponseDTO<List<InvoiceDto>> getInvoices(
+        @QueryParam("page") Integer page,
+        @QueryParam("offset") Integer offset,
+        @QueryParam("vendorId") Long vendorId
+    ) {
+        if (page == null) {
+            return (vendorId != null && vendorId > 0)
+                ? service.getInvoicesByVendorId(vendorId)
+                : service.getAll();
+        }
 
         if (page == 0) page = 1;
         if (offset == null) offset = 5;
-        return service.getAllInvoices(offset, (page - 1) * offset);
+
+        return (vendorId != null && vendorId > 0)
+            ? service.getInvoicesByVendorId(vendorId, offset, (page - 1) * offset)
+            : service.getAll(offset, (page - 1) * offset);
     }
 
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public InvoiceDto getInvoice(@PathParam("id") Long id) {
-        Optional<InvoiceDto> invoice = service.getInvoiceById(id);
+        Optional<InvoiceDto> invoice = service.findById(id);
         return invoice.orElse(null);
     }
 
@@ -38,10 +49,14 @@ public class InvoiceResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Invoice saveInvoice(Invoice invoice) {
-        invoice = service.save(invoice);
-
-        var i = service.getInvoiceById(invoice.getId());
-        return i.orElse(null);
+        InvoiceDto dto = new InvoiceDto();
+        dto.setId(invoice.getId());
+        dto.setInvoiceNumber(invoice.getInvoiceNumber());
+        dto.setEmissionDate(invoice.getEmissionDate());
+        dto.setDueDate(invoice.getDueDate());
+        dto.setVendor(invoice.getVendor());
+        dto.setAmount(invoice.getAmount());
+        return service.save(dto);
     }
 
     @PUT
@@ -49,12 +64,17 @@ public class InvoiceResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Invoice updateInvoice(@PathParam("id") Long id, Invoice invoice) {
-        var i = service.findById(id);
+        Optional<InvoiceDto> i = service.findById(id);
+
         if (i.isPresent()) {
-            invoice.setId(id);
-            invoice = service.update(invoice);
-            System.out.println(invoice);
-            return invoice;
+            InvoiceDto dto = i.get();
+            dto.setId(id);
+            dto.setInvoiceNumber(invoice.getInvoiceNumber());
+            dto.setEmissionDate(invoice.getEmissionDate());
+            dto.setDueDate(invoice.getDueDate());
+            dto.setVendor(invoice.getVendor());
+            dto.setAmount(invoice.getAmount());
+            return service.update(dto);
         } else {
             return null;
         }
@@ -63,17 +83,10 @@ public class InvoiceResource {
     @DELETE
     @Path("/{id}")
     public void deleteInvoice(@PathParam("id") Long id) {
-        var i = service.findById(id);
+        Optional<InvoiceDto> i = service.findById(id);
 
         if (i.isPresent()) {
             service.delete(id);
         }
-    }
-
-    @GET
-    @Path("/vendor/{vendorId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public ResponseDTO<List<InvoiceDto>> getInvoicesByVendor(@PathParam("vendorId") Long id) {
-        return service.getInvoicesByVendorId(id);
     }
 }

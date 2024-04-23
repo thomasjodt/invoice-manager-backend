@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface InvoiceIRepository  extends IRepository<Invoice> {
     ResponseDTO<List<Invoice>> getInvoicesByVendor(Long vendorId);
+    ResponseDTO<List<Invoice>> getInvoicesByVendor(Long vendorId, Integer limit, Integer offset);
 }

@@ -118,4 +118,9 @@ public class InvoicesRepository implements InvoiceIRepository {
 
         return response;
     }
+
+    @Override
+    public ResponseDTO<List<Invoice>> getInvoicesByVendor(Long vendorId, Integer limit, Integer offset) {
+        return null;
+    }
 }
