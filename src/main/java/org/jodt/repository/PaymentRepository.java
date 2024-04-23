@@ -22,7 +22,7 @@ public class PaymentRepository implements IPaymentRepository {
 
     @Override
     public ResponseDTO<List<Payment>> getAll() {
-        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment ORDER BY p.paymentDate", Payment.class);
+        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment p ORDER BY p.paymentDate", Payment.class);
         List<Payment> payments = q.getResultList();
         Integer count = payments.size();
 
@@ -35,7 +35,7 @@ public class PaymentRepository implements IPaymentRepository {
 
     @Override
     public ResponseDTO<List<Payment>> getAll(Integer limit, Integer offset) {
-        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment ORDER BY p.paymentDate", Payment.class);
+        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment p ORDER BY p.paymentDate", Payment.class);
         Integer count = q.getResultList().size();
 
         q.setMaxResults(limit);
@@ -107,7 +107,7 @@ public class PaymentRepository implements IPaymentRepository {
 
     @Override
     public ResponseDTO<List<Payment>> getPaymentsByInvoiceId(Long id) {
-        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment ORDER BY p.paymentDate WHERE p.invoiceId = :id", Payment.class);
+        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment p WHERE p.invoiceId = :id ORDER BY p.paymentDate", Payment.class);
         q.setParameter("id", id);
 
         List<Payment> payments = q.getResultList();
@@ -122,7 +122,7 @@ public class PaymentRepository implements IPaymentRepository {
 
     @Override
     public ResponseDTO<List<Payment>> getPaymentsByInvoiceId(Long id, Integer limit, Integer offset) {
-        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment ORDER BY p.paymentDate WHERE p.invoiceId = :id", Payment.class);
+        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment p WHERE p.invoiceId = :id ORDER BY p.paymentDate", Payment.class);
         q.setParameter("id", id);
         Integer count = q.getResultList().size();
 
