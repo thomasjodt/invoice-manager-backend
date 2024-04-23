@@ -22,30 +22,31 @@ public class PaymentRepository implements IPaymentRepository {
 
     @Override
     public ResponseDTO<List<Payment>> getAll() {
-        TypedQuery<Payment> q =  em.createQuery("SELECT p FROM Payment p", Payment.class);
-        var list = q.getResultList();
-        Integer count = list.size();
+        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment ORDER BY p.paymentDate", Payment.class);
+        List<Payment> payments = q.getResultList();
+        Integer count = payments.size();
 
-        ResponseDTO<List<Payment>> response = new ResponseDTO<>();
-        response.setCount(count);
-        response.setData(list);
-        return response;
+        ResponseDTO<List<Payment>> dto = new ResponseDTO<>();
+        dto.setCount(count);
+        dto.setData(payments);
+
+        return dto;
     }
 
     @Override
     public ResponseDTO<List<Payment>> getAll(Integer limit, Integer offset) {
-        var q = em.createQuery("SELECT p FROM Payment p", Payment.class);
+        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment ORDER BY p.paymentDate", Payment.class);
         Integer count = q.getResultList().size();
 
         q.setMaxResults(limit);
         q.setFirstResult(offset);
-        List<Payment> list = q.getResultList();
+        List<Payment> payments = q.getResultList();
 
-        ResponseDTO<List<Payment>> response = new ResponseDTO<>();
-        response.setCount(count);
-        response.setData(list);
+        ResponseDTO<List<Payment>> dto = new ResponseDTO<>();
+        dto.setCount(count);
+        dto.setData(payments);
 
-        return response;
+        return dto;
     }
 
     @Override
@@ -104,17 +105,35 @@ public class PaymentRepository implements IPaymentRepository {
         }
     }
 
+    @Override
     public ResponseDTO<List<Payment>> getPaymentsByInvoiceId(Long id) {
-        TypedQuery<Payment> q = em.createQuery("select p from Payment p where p.invoiceId = ?1", Payment.class);
-        q.setParameter(1,id);
+        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment ORDER BY p.paymentDate WHERE p.invoiceId = :id", Payment.class);
+        q.setParameter("id", id);
 
-        List<Payment> list = q.getResultList();
-        Integer count = list.size();
+        List<Payment> payments = q.getResultList();
+        Integer count = payments.size();
 
-        ResponseDTO<List<Payment>> response = new ResponseDTO<>();
-        response.setData(list);
-        response.setCount(count);
+        ResponseDTO<List<Payment>> dto = new ResponseDTO<>();
+        dto.setCount(count);
+        dto.setData(payments);
 
-        return  response;
+        return dto;
+    }
+
+    @Override
+    public ResponseDTO<List<Payment>> getPaymentsByInvoiceId(Long id, Integer limit, Integer offset) {
+        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment ORDER BY p.paymentDate WHERE p.invoiceId = :id", Payment.class);
+        q.setParameter("id", id);
+        Integer count = q.getResultList().size();
+
+        q.setMaxResults(limit);
+        q.setFirstResult(offset);
+        List<Payment> payments = q.getResultList();
+
+        ResponseDTO<List<Payment>> dto = new ResponseDTO<>();
+        dto.setCount(count);
+        dto.setData(payments);
+
+        return dto;
     }
 }

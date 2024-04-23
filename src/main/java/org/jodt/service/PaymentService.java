@@ -5,7 +5,6 @@ import jakarta.inject.Inject;
 import org.jodt.entity.Payment;
 import org.jodt.models.ResponseDTO;
 import org.jodt.repository.IPaymentRepository;
-import org.jodt.repository.IRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -47,5 +46,10 @@ public class PaymentService implements IPaymentService {
 
     public ResponseDTO<List<Payment>> getPaymentsByInvoiceId(Long id) {
         return repository.getPaymentsByInvoiceId(id);
+    }
+
+    @Override
+    public ResponseDTO<List<Payment>> getPaymentsByInvoiceId(Long id, Integer limit, Integer offset) {
+        return repository.getPaymentsByInvoiceId(id, limit, offset);
     }
 }

@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface IPaymentRepository extends IRepository<Payment> {
     ResponseDTO<List<Payment>> getPaymentsByInvoiceId(Long id);
+    ResponseDTO<List<Payment>> getPaymentsByInvoiceId(Long id, Integer limit, Integer offset);
 }

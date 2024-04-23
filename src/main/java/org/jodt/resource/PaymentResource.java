@@ -23,12 +23,18 @@ public class PaymentResource {
         @QueryParam("page") Integer page,
         @QueryParam("offset") Integer offset
     ) {
-        if (id != null && id > 0) return service.getPaymentsByInvoiceId(id);
-        if (page == null) return  service.getAll();
+        if (page == null) {
+            return (id != null && id > 0)
+                ? service.getPaymentsByInvoiceId(id)
+                : service.getAll();
+        }
 
         if (page == 0) page = 1;
         if (offset == null) offset = 5;
-        return service.getAll(offset, (page - 1) * offset);
+
+        return (id != null && id > 0)
+            ? service.getPaymentsByInvoiceId(id, offset, (page - 1) * offset)
+            : service.getAll(offset, (page - 1) * offset);
     }
 
     @GET
