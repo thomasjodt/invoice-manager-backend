@@ -49,13 +49,7 @@ public class InvoiceResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Invoice saveInvoice(Invoice invoice) {
-        InvoiceDto dto = new InvoiceDto();
-        dto.setId(invoice.getId());
-        dto.setInvoiceNumber(invoice.getInvoiceNumber());
-        dto.setEmissionDate(invoice.getEmissionDate());
-        dto.setDueDate(invoice.getDueDate());
-        dto.setVendor(invoice.getVendor());
-        dto.setAmount(invoice.getAmount());
+        InvoiceDto dto = new InvoiceDto(invoice);
         return service.save(dto);
     }
 
@@ -67,14 +61,8 @@ public class InvoiceResource {
         Optional<InvoiceDto> i = service.findById(id);
 
         if (i.isPresent()) {
-            InvoiceDto dto = i.get();
-            dto.setId(id);
-            dto.setInvoiceNumber(invoice.getInvoiceNumber());
-            dto.setEmissionDate(invoice.getEmissionDate());
-            dto.setDueDate(invoice.getDueDate());
-            dto.setVendor(invoice.getVendor());
-            dto.setAmount(invoice.getAmount());
-            return service.update(dto);
+            InvoiceDto dto = new InvoiceDto(invoice);
+            return  service.update(dto);
         } else {
             return null;
         }
@@ -84,9 +72,6 @@ public class InvoiceResource {
     @Path("/{id}")
     public void deleteInvoice(@PathParam("id") Long id) {
         Optional<InvoiceDto> i = service.findById(id);
-
-        if (i.isPresent()) {
-            service.delete(id);
-        }
+        if (i.isPresent()) service.delete(id);
     }
 }
