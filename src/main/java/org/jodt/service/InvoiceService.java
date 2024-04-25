@@ -30,6 +30,11 @@ public class InvoiceService implements InvoiceIService {
     public ResponseDTO<List<InvoiceDto>> getAll(Integer limit, Integer offset) {
         ResponseDTO<List<InvoiceDto>> invoices = this.getAll();
         invoices.setData(invoices.getData().subList(offset, offset + limit));
+
+        if (limit > invoices.getCount()) {
+            limit = invoices.getCount();
+        }
+        invoices.setData(invoices.getData().subList(offset, offset + limit));
         return invoices;
     }
 
@@ -76,6 +81,9 @@ public class InvoiceService implements InvoiceIService {
     @Override
     public ResponseDTO<List<InvoiceDto>> getInvoicesByVendorId(Long id, Integer limit, Integer offset) {
         ResponseDTO<List<InvoiceDto>> res = this.getInvoicesByVendorId(id);
+        if (limit > res.getCount()) {
+            limit = res.getCount();
+        }
         res.setData(res.getData().subList(offset, offset + limit));
         return res;
     }
