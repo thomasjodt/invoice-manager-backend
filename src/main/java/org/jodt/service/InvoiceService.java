@@ -28,8 +28,9 @@ public class InvoiceService implements InvoiceIService {
 
     @Override
     public ResponseDTO<List<InvoiceDto>> getAll(Integer limit, Integer offset) {
-        ResponseDTO<List<Invoice>> invoices = repository.getAll(limit,offset);
-        return getListInvoiceDTO(invoices);
+        ResponseDTO<List<InvoiceDto>> invoices = this.getAll();
+        invoices.setData(invoices.getData().subList(offset, offset + limit));
+        return invoices;
     }
 
     @Override
@@ -47,15 +48,17 @@ public class InvoiceService implements InvoiceIService {
 
     @Override
     public InvoiceDto save(InvoiceDto invoice) {
-        Invoice i = repository.save(invoice);
+        Invoice i = new Invoice(invoice);
+        i = repository.save(i);
         Optional<InvoiceDto> dto = findById(i.getId());
         return dto.orElse(null);
     }
 
     @Override
     public InvoiceDto update(InvoiceDto invoice) {
-        repository.update(invoice);
-        Optional<InvoiceDto> dto = findById(invoice.getId());
+        Invoice i = new Invoice(invoice);
+        repository.update(i);
+        Optional<InvoiceDto> dto = findById(i.getId());
         return dto.orElse(null);
     }
 
@@ -63,7 +66,6 @@ public class InvoiceService implements InvoiceIService {
     public void delete(Long id) {
         repository.delete(id);
     }
-
 
     @Override
     public ResponseDTO<List<InvoiceDto>> getInvoicesByVendorId(Long id) {
@@ -73,8 +75,9 @@ public class InvoiceService implements InvoiceIService {
 
     @Override
     public ResponseDTO<List<InvoiceDto>> getInvoicesByVendorId(Long id, Integer limit, Integer offset) {
-        ResponseDTO<List<Invoice>> res = repository.getInvoicesByVendor(id, limit, offset);
-        return getListInvoiceDTO(res);
+        ResponseDTO<List<InvoiceDto>> res = this.getInvoicesByVendorId(id);
+        res.setData(res.getData().subList(offset, offset + limit));
+        return res;
     }
 
     private static InvoiceDto getInvoiceDto(Invoice invoice, List<Payment> payments) {
