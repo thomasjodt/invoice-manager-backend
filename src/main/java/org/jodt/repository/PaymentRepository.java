@@ -24,7 +24,7 @@ public class PaymentRepository implements IPaymentRepository {
     public ResponseDTO<List<Payment>> getAll() {
         TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment p ORDER BY p.paymentDate", Payment.class);
         List<Payment> payments = q.getResultList();
-        Integer count = payments.size();
+        Integer count = getCount();
 
         ResponseDTO<List<Payment>> dto = new ResponseDTO<>();
         dto.setCount(count);
@@ -36,7 +36,7 @@ public class PaymentRepository implements IPaymentRepository {
     @Override
     public ResponseDTO<List<Payment>> getAll(Integer limit, Integer offset) {
         TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment p ORDER BY p.paymentDate", Payment.class);
-        Integer count = q.getResultList().size();
+        Integer count = getCount();
 
         q.setMaxResults(limit);
         q.setFirstResult(offset);
@@ -111,7 +111,7 @@ public class PaymentRepository implements IPaymentRepository {
         q.setParameter("id", id);
 
         List<Payment> payments = q.getResultList();
-        Integer count = payments.size();
+        Integer count = getCount();
 
         ResponseDTO<List<Payment>> dto = new ResponseDTO<>();
         dto.setCount(count);
@@ -124,7 +124,7 @@ public class PaymentRepository implements IPaymentRepository {
     public ResponseDTO<List<Payment>> getPaymentsByInvoiceId(Long id, Integer limit, Integer offset) {
         TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment p WHERE p.invoiceId = :id ORDER BY p.paymentDate", Payment.class);
         q.setParameter("id", id);
-        Integer count = q.getResultList().size();
+        Integer count = getCount();
 
         q.setMaxResults(limit);
         q.setFirstResult(offset);
@@ -135,5 +135,10 @@ public class PaymentRepository implements IPaymentRepository {
         dto.setData(payments);
 
         return dto;
+    }
+
+    @Override
+    public Integer getCount() {
+        return em.createQuery("SELECT COUNT(p) FROM Payment p", Long.class).getSingleResult().intValue();
     }
 }

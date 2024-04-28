@@ -23,7 +23,7 @@ public class InvoicesRepository implements InvoiceIRepository {
     @Override
     public ResponseDTO<List<Invoice>> getAll() {
         List<Invoice> list = em.createQuery("select i from Invoice i ORDER BY i.emissionDate DESC", Invoice.class).getResultList();
-        Integer count = list.size();
+        Integer count = getCount();
 
         ResponseDTO<List<Invoice>> response = new ResponseDTO<>();
         response.setCount(count);
@@ -34,8 +34,8 @@ public class InvoicesRepository implements InvoiceIRepository {
 
     @Override
     public ResponseDTO<List<Invoice>> getAll(Integer limit, Integer offset) {
-        var q = em.createQuery("select i from Invoice i ORDER BY i.emissionDate DESC", Invoice.class);
-        Integer count = q.getResultList().size();
+        TypedQuery<Invoice> q = em.createQuery("SELECT i FROM Invoice i ORDER BY i.emissionDate DESC", Invoice.class);
+        Integer count = getCount();
 
         q.setMaxResults(limit);
         q.setFirstResult(offset);
@@ -110,7 +110,7 @@ public class InvoicesRepository implements InvoiceIRepository {
         q.setParameter("vendorId", vendorId);
 
         List<Invoice> list = q.getResultList();
-        Integer count = list.size();
+        Integer count = getCount();
 
         ResponseDTO<List<Invoice>> response = new ResponseDTO<>();
         response.setCount(count);
@@ -123,7 +123,7 @@ public class InvoicesRepository implements InvoiceIRepository {
     public ResponseDTO<List<Invoice>> getInvoicesByVendor(Long vendorId, Integer limit, Integer offset) {
         TypedQuery<Invoice> q = em.createQuery("SELECT i FROM Invoice i WHERE i.vendor.id=:vendorId ORDER BY i.emissionDate DESC", Invoice.class);
         q.setParameter("vendorId", vendorId);
-        Integer count = q.getResultList().size();
+        Integer count = getCount();
 
         q.setMaxResults(limit);
         q.setFirstResult(offset);
@@ -134,5 +134,10 @@ public class InvoicesRepository implements InvoiceIRepository {
         response.setData(list);
 
         return response;
+    }
+
+    @Override
+    public Integer getCount() {
+        return em.createQuery("SELECT COUNT(i) FROM Invoice i", Long.class).getSingleResult().intValue();
     }
 }
