@@ -110,7 +110,7 @@ public class InvoicesRepository implements InvoiceIRepository {
         q.setParameter("vendorId", vendorId);
 
         List<Invoice> list = q.getResultList();
-        Integer count = getCount();
+        Integer count = getCountByVendor(vendorId);
 
         ResponseDTO<List<Invoice>> response = new ResponseDTO<>();
         response.setCount(count);
@@ -123,7 +123,7 @@ public class InvoicesRepository implements InvoiceIRepository {
     public ResponseDTO<List<Invoice>> getInvoicesByVendor(Long vendorId, Integer limit, Integer offset) {
         TypedQuery<Invoice> q = em.createQuery("SELECT i FROM Invoice i WHERE i.vendor.id=:vendorId ORDER BY i.emissionDate DESC", Invoice.class);
         q.setParameter("vendorId", vendorId);
-        Integer count = getCount();
+        Integer count = getCountByVendor(vendorId);
 
         q.setMaxResults(limit);
         q.setFirstResult(offset);
@@ -139,5 +139,9 @@ public class InvoicesRepository implements InvoiceIRepository {
     @Override
     public Integer getCount() {
         return em.createQuery("SELECT COUNT(i) FROM Invoice i", Long.class).getSingleResult().intValue();
+    }
+
+    public Integer getCountByVendor(Long vendorId) {
+        return em.createQuery("SELECT COUNT(i) FROM Invoice i WHERE i.vendor.id =:vendorId", Long.class).setParameter("vendorId", vendorId).getSingleResult().intValue();
     }
 }
