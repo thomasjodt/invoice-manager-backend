@@ -83,12 +83,8 @@ public class InvoiceService implements InvoiceIService {
 
     @Override
     public ResponseDTO<List<InvoiceDto>> getInvoicesByVendorId(Long id, Integer limit, Integer offset) {
-        ResponseDTO<List<InvoiceDto>> res = this.getInvoicesByVendorId(id);
-        if (limit > res.getCount() - offset) {
-            limit = res.getCount() - offset;
-        }
-        res.setData(res.getData().subList(offset, offset + limit));
-        return res;
+        ResponseDTO<List<Invoice>> invoices = repository.getInvoicesByVendor(id, limit, offset);
+        return getListInvoiceDTO(invoices);
     }
 
     private static InvoiceDto getInvoiceDto(Invoice invoice, List<Payment> payments) {
