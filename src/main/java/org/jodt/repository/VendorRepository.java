@@ -100,8 +100,8 @@ public class VendorRepository implements IVendorRepository {
         return getListResponseDTO(limit, offset, q);
     }
 
-    private static ResponseDTO<List<Vendor>> getListResponseDTO(Integer limit, Integer offset, TypedQuery<Vendor> q) {
-        Integer count = q.getResultList().size();
+    private ResponseDTO<List<Vendor>> getListResponseDTO(Integer limit, Integer offset, TypedQuery<Vendor> q) {
+        Integer count = getCount();
 
         q.setMaxResults(limit);
         q.setFirstResult(offset);
@@ -113,13 +113,18 @@ public class VendorRepository implements IVendorRepository {
 
         return response;
     }
-    private static ResponseDTO<List<Vendor>> getResponseDTO(TypedQuery<Vendor> q) {
+    private ResponseDTO<List<Vendor>> getResponseDTO(TypedQuery<Vendor> q) {
         List<Vendor> vendors = q.getResultList();
-        Integer count = vendors.size();
+        Integer count = getCount();
         ResponseDTO<List<Vendor>> response = new ResponseDTO<>();
         response.setCount(count);
         response.setData(vendors);
 
         return response;
+    }
+
+    @Override
+    public Integer getCount() {
+        return em.createQuery("SELECT COUNT(v) FROM Vendor v", Long.class).getSingleResult().intValue();
     }
 }

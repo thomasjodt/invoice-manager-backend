@@ -11,4 +11,5 @@ public interface IRepository<T> {
     T save(T t);
     T update(T t);
     void delete(Long id);
+    Integer getCount();
 }
