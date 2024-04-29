@@ -143,6 +143,6 @@ public class PaymentRepository implements IPaymentRepository {
     }
 
     public Integer getCountByInvoiceId(Long invoiceId) {
-        return em.createQuery("SELECT COUNT(p) FROM Payment p WHERE p.invoiceId = :id", Long.class).setParameter("invoiceId", invoiceId).getSingleResult().intValue();
+        return em.createQuery("SELECT COUNT(p) FROM Payment p WHERE p.invoiceId = :id", Long.class).setParameter("id", invoiceId).getSingleResult().intValue();
     }
 }
