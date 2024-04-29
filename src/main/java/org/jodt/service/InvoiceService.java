@@ -28,17 +28,8 @@ public class InvoiceService implements InvoiceIService {
 
     @Override
     public ResponseDTO<List<InvoiceDto>> getAll(Integer limit, Integer offset) {
-        ResponseDTO<List<InvoiceDto>> invoices = this.getAll();
-        if (limit > invoices.getCount() - offset) {
-            limit = invoices.getCount() - offset;
-        }
-        invoices.setData(invoices.getData().subList(offset, offset + limit));
-
-        if (limit > invoices.getCount() - offset) {
-            limit = invoices.getCount() - offset;
-        }
-        invoices.setData(invoices.getData().subList(offset, offset + limit));
-        return invoices;
+        ResponseDTO<List<Invoice>> invoices = repository.getAll(limit, offset);
+        return getListInvoiceDTO(invoices);
     }
 
     @Override
