@@ -22,7 +22,7 @@ public class InvoicesRepository implements InvoiceIRepository {
 
     @Override
     public ResponseDTO<List<Invoice>> getAll() {
-        List<Invoice> list = em.createQuery("select i from Invoice i ORDER BY i.emissionDate DESC", Invoice.class).getResultList();
+        List<Invoice> list = em.createQuery("SELECT i FROM Invoice i ORDER BY i.emissionDate DESC, i.vendor.name ASC, i.invoiceNumber ASC", Invoice.class).getResultList();
         Integer count = getCount();
 
         ResponseDTO<List<Invoice>> response = new ResponseDTO<>();
@@ -34,7 +34,7 @@ public class InvoicesRepository implements InvoiceIRepository {
 
     @Override
     public ResponseDTO<List<Invoice>> getAll(Integer limit, Integer offset) {
-        TypedQuery<Invoice> q = em.createQuery("SELECT i FROM Invoice i ORDER BY i.emissionDate DESC", Invoice.class);
+        TypedQuery<Invoice> q = em.createQuery("SELECT i FROM Invoice i ORDER BY i.emissionDate DESC, i.vendor.name ASC, i.invoiceNumber ASC", Invoice.class);
         Integer count = getCount();
 
         q.setMaxResults(limit);
@@ -106,7 +106,7 @@ public class InvoicesRepository implements InvoiceIRepository {
 
     @Override
     public ResponseDTO<List<Invoice>> getInvoicesByVendor(Long vendorId) {
-        TypedQuery<Invoice> q = em.createQuery("SELECT i FROM Invoice i WHERE i.vendor.id=:vendorId ORDER BY i.emissionDate DESC", Invoice.class);
+        TypedQuery<Invoice> q = em.createQuery("SELECT i FROM Invoice i WHERE i.vendor.id=:vendorId ORDER BY i.emissionDate DESC, i.invoiceNumber ASC", Invoice.class);
         q.setParameter("vendorId", vendorId);
 
         List<Invoice> list = q.getResultList();
@@ -121,7 +121,7 @@ public class InvoicesRepository implements InvoiceIRepository {
 
     @Override
     public ResponseDTO<List<Invoice>> getInvoicesByVendor(Long vendorId, Integer limit, Integer offset) {
-        TypedQuery<Invoice> q = em.createQuery("SELECT i FROM Invoice i WHERE i.vendor.id=:vendorId ORDER BY i.emissionDate DESC", Invoice.class);
+        TypedQuery<Invoice> q = em.createQuery("SELECT i FROM Invoice i WHERE i.vendor.id=:vendorId ORDER BY i.emissionDate DESC, i.invoiceNumber ASC", Invoice.class);
         q.setParameter("vendorId", vendorId);
         Integer count = getCountByVendor(vendorId);
 
