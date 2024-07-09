@@ -5,7 +5,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.jodt.entity.Vendor;
 import org.jodt.models.ResponseDTO;
-import org.jodt.models.VendorDto;
 import org.jodt.service.IVendorService;
 
 import java.util.List;
@@ -18,7 +17,7 @@ public class VendorResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public ResponseDTO<List<VendorDto>> getVendors(
+    public ResponseDTO<List<Vendor>> getVendors(
         @QueryParam("name") String name,
         @QueryParam("page") Integer page,
         @QueryParam("offset") Integer offset
@@ -40,45 +39,33 @@ public class VendorResource {
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public VendorDto getVendor(@PathParam("id") Long id) {
-        Optional<VendorDto> vendor = service.findById(id);
+    public Vendor getVendor(@PathParam("id") Long id) {
+        Optional<Vendor> vendor = service.findById(id);
         return vendor.orElse(null);
     }
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public VendorDto saveVendor(Vendor vendor) {
-        var dto = new VendorDto(vendor.getId(), vendor.getName(), vendor.getFullName(), 0D);
-        dto = service.save(dto);
-        return service.findById(dto.getId()).orElse(null);
+    public Vendor saveVendor(Vendor vendor) {
+        vendor = service.save(vendor);
+        return vendor;
     }
 
     @PUT
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public VendorDto updateVendor(@PathParam("id") Long id, Vendor vendor) {
-        Optional<VendorDto> v = service.findById(id);
-
-        if (v.isPresent()) {
-            VendorDto dto = v.get();
-            dto.setId(id);
-            dto.setName(vendor.getName());
-            dto.setFullName(vendor.getFullName());
-            return service.update(dto);
-        } else {
-            return null;
-        }
+    public Vendor updateVendor(@PathParam("id") Long id, Vendor vendor) {
+        Optional<Vendor> v = service.findById(id);
+        return v.orElse(null);
     }
 
     @DELETE
     @Path("/{id}")
     public void deleteVendor(@PathParam("id") Long id) {
-        Optional<VendorDto> v = service.findById(id);
+        Optional<Vendor> v = service.findById(id);
+        if (v.isPresent()) service.delete(id);
 
-        if (v.isPresent()) {
-            service.delete(id);
-        }
     }
 }

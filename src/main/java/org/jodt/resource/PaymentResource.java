@@ -8,7 +8,6 @@ import org.jodt.models.ResponseDTO;
 import org.jodt.service.IPaymentService;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Path("/payments")

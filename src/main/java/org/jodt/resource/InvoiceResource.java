@@ -4,7 +4,6 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.jodt.entity.Invoice;
-import org.jodt.models.InvoiceDto;
 import org.jodt.models.ResponseDTO;
 import org.jodt.service.InvoiceIService;
 
@@ -18,7 +17,7 @@ public class InvoiceResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public ResponseDTO<List<InvoiceDto>> getInvoices(
+    public ResponseDTO<List<Invoice>> getInvoices(
         @QueryParam("page") Integer page,
         @QueryParam("offset") Integer offset,
         @QueryParam("vendorId") Long vendorId
@@ -40,8 +39,8 @@ public class InvoiceResource {
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public InvoiceDto getInvoice(@PathParam("id") Long id) {
-        Optional<InvoiceDto> invoice = service.findById(id);
+    public Invoice getInvoice(@PathParam("id") Long id) {
+        Optional<Invoice> invoice = service.findById(id);
         return invoice.orElse(null);
     }
 
@@ -49,8 +48,7 @@ public class InvoiceResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Invoice saveInvoice(Invoice invoice) {
-        InvoiceDto dto = new InvoiceDto(invoice);
-        return service.save(dto);
+        return service.save(invoice);
     }
 
     @PUT
@@ -58,20 +56,14 @@ public class InvoiceResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Invoice updateInvoice(@PathParam("id") Long id, Invoice invoice) {
-        Optional<InvoiceDto> i = service.findById(id);
-
-        if (i.isPresent()) {
-            InvoiceDto dto = new InvoiceDto(invoice);
-            return  service.update(dto);
-        } else {
-            return null;
-        }
+        Optional<Invoice> i = service.findById(id);
+        return i.orElse(null);
     }
 
     @DELETE
     @Path("/{id}")
     public void deleteInvoice(@PathParam("id") Long id) {
-        Optional<InvoiceDto> i = service.findById(id);
+        Optional<Invoice> i = service.findById(id);
         if (i.isPresent()) service.delete(id);
     }
 }

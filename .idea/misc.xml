@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="EntryPointsManager">
-    <list size="5">
+    <list size="6">
       <item index="0" class="java.lang.String" itemvalue="jakarta.enterprise.context.ApplicationScoped" />
-      <item index="1" class="java.lang.String" itemvalue="jakarta.ws.rs.DELETE" />
-      <item index="2" class="java.lang.String" itemvalue="jakarta.ws.rs.GET" />
-      <item index="3" class="java.lang.String" itemvalue="jakarta.ws.rs.POST" />
-      <item index="4" class="java.lang.String" itemvalue="jakarta.ws.rs.PUT" />
+      <item index="1" class="java.lang.String" itemvalue="jakarta.persistence.PostLoad" />
+      <item index="2" class="java.lang.String" itemvalue="jakarta.ws.rs.DELETE" />
+      <item index="3" class="java.lang.String" itemvalue="jakarta.ws.rs.GET" />
+      <item index="4" class="java.lang.String" itemvalue="jakarta.ws.rs.POST" />
+      <item index="5" class="java.lang.String" itemvalue="jakarta.ws.rs.PUT" />
     </list>
     <writeAnnotations>
       <writeAnnotation name="jakarta.inject.Inject" />
