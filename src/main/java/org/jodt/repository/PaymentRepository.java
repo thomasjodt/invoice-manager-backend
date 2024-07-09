@@ -107,7 +107,7 @@ public class PaymentRepository implements IPaymentRepository {
 
     @Override
     public ResponseDTO<List<Payment>> getPaymentsByInvoiceId(Long id) {
-        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment p WHERE p.invoiceId = :id ORDER BY p.paymentDate", Payment.class);
+        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment p WHERE p.invoice.id = :id ORDER BY p.paymentDate", Payment.class);
         q.setParameter("id", id);
 
         List<Payment> payments = q.getResultList();
@@ -122,7 +122,7 @@ public class PaymentRepository implements IPaymentRepository {
 
     @Override
     public ResponseDTO<List<Payment>> getPaymentsByInvoiceId(Long id, Integer limit, Integer offset) {
-        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment p WHERE p.invoiceId = :id ORDER BY p.paymentDate", Payment.class);
+        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment p WHERE p.invoice.id = :id ORDER BY p.paymentDate", Payment.class);
         q.setParameter("id", id);
         Integer count = getCountByInvoiceId(id);
 
@@ -143,6 +143,6 @@ public class PaymentRepository implements IPaymentRepository {
     }
 
     public Integer getCountByInvoiceId(Long invoiceId) {
-        return em.createQuery("SELECT COUNT(p) FROM Payment p WHERE p.invoiceId = :id", Long.class).setParameter("id", invoiceId).getSingleResult().intValue();
+        return em.createQuery("SELECT COUNT(p) FROM Payment p WHERE p.invoice.id = :id", Long.class).setParameter("id", invoiceId).getSingleResult().intValue();
     }
 }
