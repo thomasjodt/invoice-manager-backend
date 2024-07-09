@@ -98,7 +98,6 @@ public class VendorService implements IVendorService {
             }
 
             vendor.setInvoices(invoices.getData());
-            vendor.setPayments(payments);
             vendor.setBalance(balance);
 
             updated.add(vendor);
