@@ -2,11 +2,13 @@ package org.jodt.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.jodt.entity.Invoice;
+import org.jodt.entity.Payment;
 import org.jodt.entity.Vendor;
-import org.jodt.models.InvoiceDto;
 import org.jodt.models.ResponseDTO;
-import org.jodt.models.VendorDto;
+import org.jodt.repository.IPaymentRepository;
 import org.jodt.repository.IVendorRepository;
+import org.jodt.repository.InvoiceIRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,54 +18,80 @@ import java.util.concurrent.atomic.AtomicReference;
 @ApplicationScoped
 public class VendorService implements IVendorService {
     @Inject
-    IVendorRepository repository;
+    private IVendorRepository repository;
 
     @Inject
-    InvoiceIService invoiceService;
+    private IPaymentRepository paymentRepository;
+
+    @Inject
+    private InvoiceIRepository invoiceRepository;
 
     @Override
-    public ResponseDTO<List<VendorDto>> findByName(String vendorName) {
-        ResponseDTO<List<Vendor>> response = repository.findByName('%' + vendorName + '%');
-        return getResponseDTO(response);
+    public ResponseDTO<List<Vendor>> findByName(String vendorName) {
+        return repository.findByName('%' + vendorName + '%');
     }
 
     @Override
-    public ResponseDTO<List<VendorDto>> findByName(String vendorName, Integer page, Integer offset) {
-        ResponseDTO<List<Vendor>> response = repository.findByName('%' + vendorName + '%', page, offset);
-        return getResponseDTO(response);
+    public ResponseDTO<List<Vendor>> findByName(String vendorName, Integer page, Integer offset) {
+        return repository.findByName('%' + vendorName + '%', page, offset);
     }
 
     @Override
-    public ResponseDTO<List<VendorDto>> getAll() {
-        ResponseDTO<List<Vendor>> response = repository.getAll();
-        return getResponseDTO(response);
+    public ResponseDTO<List<Vendor>> getAll() {
+        var vendors = repository.getAll();
+        List<Vendor> updated = new ArrayList<>();
+
+        for (Vendor vendor : vendors.getData()) {
+            ResponseDTO<List<Invoice>> invoices = invoiceRepository.getInvoicesByVendor(vendor.getId());
+            List<Payment> payments = new ArrayList<>();
+
+            Double balance = 0D;
+
+            for (Invoice invoice : invoices.getData()) {
+                AtomicReference<Double> totalAmount = new AtomicReference<>(0D);
+                AtomicReference<Double> totalPaid = new AtomicReference<>(0D);
+
+                ResponseDTO<List<Payment>> paymentsList = paymentRepository.getPaymentsByInvoiceId(invoice.getId());
+                payments.addAll(paymentsList.getData());
+
+                invoices.getData().forEach((i) -> totalAmount.updateAndGet(v -> v + i.getAmount()));
+                payments.forEach((p) -> totalPaid.updateAndGet(v -> v + p.getAmount()));
+
+                balance = totalAmount.get() - totalPaid.get();
+            }
+
+            vendor.setInvoices(invoices.getData());
+            vendor.setPayments(payments);
+            vendor.setBalance(balance);
+
+            updated.add(vendor);
+        }
+
+        vendors.setData(updated);
+        return vendors;
     }
 
     @Override
-    public ResponseDTO<List<VendorDto>> getAll(Integer page, Integer offset) {
-        ResponseDTO<List<Vendor>> response = repository.getAll(page, offset);
-        return getResponseDTO(response);
+    public ResponseDTO<List<Vendor>> getAll(Integer page, Integer offset) {
+        return repository.getAll(page, offset);
     }
 
     @Override
-    public Optional<VendorDto> findById(Long id) {
+    public Optional<Vendor> findById(Long id) {
         Vendor vendor = repository.findById(id);
-        VendorDto dto = getDto(vendor);
-        return Optional.of(dto);
+        return Optional.ofNullable(vendor);
     }
 
     @Override
-    public VendorDto save(VendorDto vendorDto) {
-        Vendor vendor = new Vendor(vendorDto.getId(), vendorDto.getName(), vendorDto.getFullName());
-        Vendor newVendor = repository.save(vendor);
-        return getDto(newVendor);
+    public Vendor save(Vendor vendor) {
+        vendor = repository.save(vendor);
+        return vendor;
     }
 
     @Override
-    public VendorDto update(VendorDto vendorDto) {
-        Vendor vendor = new Vendor(vendorDto.getId(), vendorDto.getName(), vendorDto.getFullName());
-        Vendor updatedVendor = repository.update(vendor);
-        return getDto(updatedVendor);
+    public Vendor update(Vendor vendor) {
+        vendor = repository.update(vendor);
+        return vendor;
     }
 
     @Override
@@ -71,31 +99,4 @@ public class VendorService implements IVendorService {
         repository.delete(id);
     }
 
-    private VendorDto getDto(Vendor vendor) {
-        ResponseDTO<List<InvoiceDto>> invoices = invoiceService.getInvoicesByVendorId(vendor.getId());
-        AtomicReference<Double> allPaid = new AtomicReference<>(0D);
-        AtomicReference<Double> allAmount = new AtomicReference<>(0D);
-
-        invoices.getData().forEach((invoice) -> {
-            allAmount.updateAndGet(v -> v + invoice.getAmount());
-            invoice.getPayments().forEach(p -> allPaid.updateAndGet(v -> v + p.getAmount()));
-        });
-
-        VendorDto dto = new VendorDto(vendor.getId(), vendor.getName(), vendor.getFullName(), 0D);
-        dto.setBalance(allAmount.get() - allPaid.get());
-        return dto;
-    }
-    private ResponseDTO<List<VendorDto>> getResponseDTO(ResponseDTO<List<Vendor>> response) {
-        List<Vendor> vendors = response.getData();
-        List<VendorDto> list = new ArrayList<>();
-
-        vendors.forEach(vendor -> {
-            VendorDto dto = getDto(vendor);
-            list.add(dto);
-        });
-        ResponseDTO<List<VendorDto>> res = new ResponseDTO<>();
-        res.setData(list);
-        res.setCount(response.getCount());
-        return res;
-    }
 }

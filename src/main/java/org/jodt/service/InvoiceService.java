@@ -3,12 +3,9 @@ package org.jodt.service;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jodt.entity.Invoice;
-import org.jodt.entity.Payment;
-import org.jodt.models.InvoiceDto;
 import org.jodt.models.ResponseDTO;
 import org.jodt.repository.InvoiceIRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,48 +14,31 @@ public class InvoiceService implements InvoiceIService {
     @Inject
     InvoiceIRepository repository;
 
-    @Inject
-    IPaymentService paymentService;
-
     @Override
-    public ResponseDTO<List<InvoiceDto>> getAll() {
-        ResponseDTO<List<Invoice>> invoices =  repository.getAll();
-        return getListInvoiceDTO(invoices);
+    public ResponseDTO<List<Invoice>> getAll() {
+        return repository.getAll();
     }
 
     @Override
-    public ResponseDTO<List<InvoiceDto>> getAll(Integer limit, Integer offset) {
-        ResponseDTO<List<Invoice>> invoices = repository.getAll(limit, offset);
-        return getListInvoiceDTO(invoices);
+    public ResponseDTO<List<Invoice>> getAll(Integer limit, Integer offset) {
+        return repository.getAll(limit, offset);
     }
 
     @Override
-    public Optional<InvoiceDto> findById(Long id) {
-        Optional<Invoice>  o = Optional.ofNullable(repository.findById(id));
-        InvoiceDto dto = null;
-
-        if (o.isPresent()) {
-            List<Payment> payments = paymentService.getPaymentsByInvoiceId(id).getData();
-            dto = getInvoiceDto(o.get(), payments);
-        }
-
-        return Optional.ofNullable(dto);
+    public Optional<Invoice> findById(Long id) {
+        return Optional.ofNullable(repository.findById(id));
     }
 
     @Override
-    public InvoiceDto save(InvoiceDto invoice) {
-        Invoice i = new Invoice(invoice);
-        i = repository.save(i);
-        Optional<InvoiceDto> dto = findById(i.getId());
-        return dto.orElse(null);
+    public Invoice save(Invoice invoice) {
+        invoice = repository.save(invoice);
+        return invoice;
     }
 
     @Override
-    public InvoiceDto update(InvoiceDto invoice) {
-        Invoice i = new Invoice(invoice);
-        repository.update(i);
-        Optional<InvoiceDto> dto = findById(i.getId());
-        return dto.orElse(null);
+    public Invoice update(Invoice invoice) {
+        invoice = repository.update(invoice);
+        return invoice;
     }
 
     @Override
@@ -67,41 +47,13 @@ public class InvoiceService implements InvoiceIService {
     }
 
     @Override
-    public ResponseDTO<List<InvoiceDto>> getInvoicesByVendorId(Long id) {
-        ResponseDTO<List<Invoice>> res = repository.getInvoicesByVendor(id);
-        return getListInvoiceDTO(res);
+    public ResponseDTO<List<Invoice>> getInvoicesByVendorId(Long id) {
+        return repository.getInvoicesByVendor(id);
+
     }
 
     @Override
-    public ResponseDTO<List<InvoiceDto>> getInvoicesByVendorId(Long id, Integer limit, Integer offset) {
-        ResponseDTO<List<Invoice>> invoices = repository.getInvoicesByVendor(id, limit, offset);
-        return getListInvoiceDTO(invoices);
-    }
-
-    private static InvoiceDto getInvoiceDto(Invoice invoice, List<Payment> payments) {
-        InvoiceDto dto = new InvoiceDto();
-
-        dto.setId(invoice.getId());
-        dto.setPayments(payments);
-        dto.setAmount(invoice.getAmount());
-        dto.setVendor(invoice.getVendor());
-        dto.setDueDate(invoice.getDueDate());
-        dto.setEmissionDate(invoice.getEmissionDate());
-        dto.setInvoiceNumber(invoice.getInvoiceNumber());
-        return dto;
-    }
-    private ResponseDTO<List<InvoiceDto>> getListInvoiceDTO(ResponseDTO<List<Invoice>> invoices) {
-        List<InvoiceDto> list = new ArrayList<>();
-
-        invoices.getData().forEach((invoice) -> {
-            List<Payment> payments = paymentService.getPaymentsByInvoiceId(invoice.getId()).getData();
-            InvoiceDto invoiceDto = getInvoiceDto(invoice, payments);
-            list.add(invoiceDto);
-        });
-
-        ResponseDTO<List<InvoiceDto>> dto = new ResponseDTO<>();
-        dto.setData(list);
-        dto.setCount(invoices.getCount());
-        return dto;
+    public ResponseDTO<List<Invoice>> getInvoicesByVendorId(Long id, Integer limit, Integer offset) {
+        return repository.getInvoicesByVendor(id, limit, offset);
     }
 }
