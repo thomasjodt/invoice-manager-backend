@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -33,5 +34,6 @@ public class Invoice implements Serializable {
 
     private Double amount;
 
-
+    @Transient
+    private List<Payment> payments;
 }
