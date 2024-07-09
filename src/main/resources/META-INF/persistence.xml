@@ -3,11 +3,12 @@
     <persistence-unit name="invoices-api" transaction-type="JTA">
         <jta-data-source>java:/MySqlDS</jta-data-source>
         <properties>
-            <property name="jakarta.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/<your_database>?serverTimeZone=UTC"/>
-            <property name="jakarta.persistence.jdbc.user" value="<your_username>"/>
-            <property name="jakarta.persistence.jdbc.password" value="<your_password>"/>
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/invoice_app?serverTimeZone=America/Lima"/>
+            <property name="jakarta.persistence.jdbc.user" value="root"/>
+            <property name="jakarta.persistence.jdbc.password" value="123456"/>
             <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
             <property name="hibernate.show_sql" value="true"/>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL8Dialect"/>
             <property name="hibernate.jpa.compliance.query" value="false"/>
         </properties>
     </persistence-unit>
