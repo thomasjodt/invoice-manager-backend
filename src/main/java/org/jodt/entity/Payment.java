@@ -25,6 +25,7 @@ public class Payment implements Serializable {
     @Column(name = "payment_date")
     private LocalDate paymentDate;
 
-    @Column(name = "invoice_id")
-    private Long invoiceId;
+    @ManyToOne
+    @JoinColumn(name = "invoice_id")
+    private Invoice invoice;
 }
