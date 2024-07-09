@@ -16,20 +16,22 @@ import java.time.LocalDate;
 public class Invoice implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    protected Long id;
+    private Long id;
 
     @Column(name = "invoice_number")
-    protected String invoiceNumber;
+    private String invoiceNumber;
 
     @Column(name = "emission_date")
-    protected LocalDate emissionDate;
+    private LocalDate emissionDate;
 
     @Column(name = "due_date")
-    protected LocalDate dueDate;
+    private LocalDate dueDate;
 
     @OneToOne
     @JoinColumn(name = "vendor_id")
-    protected Vendor vendor;
+    private Vendor vendor;
 
-    protected Double amount;
+    private Double amount;
+
+
 }
