@@ -38,42 +38,18 @@ public class VendorService implements IVendorService {
 
     @Override
     public ResponseDTO<List<Vendor>> getAll() {
-        var vendors = repository.getAll();
-        List<Vendor> updated = new ArrayList<>();
-
-        for (Vendor vendor : vendors.getData()) {
-            ResponseDTO<List<Invoice>> invoices = invoiceRepository.getInvoicesByVendor(vendor.getId());
-            List<Payment> payments = new ArrayList<>();
-
-            Double balance = 0D;
-
-            for (Invoice invoice : invoices.getData()) {
-                AtomicReference<Double> totalAmount = new AtomicReference<>(0D);
-                AtomicReference<Double> totalPaid = new AtomicReference<>(0D);
-
-                ResponseDTO<List<Payment>> paymentsList = paymentRepository.getPaymentsByInvoiceId(invoice.getId());
-                payments.addAll(paymentsList.getData());
-
-                invoices.getData().forEach((i) -> totalAmount.updateAndGet(v -> v + i.getAmount()));
-                payments.forEach((p) -> totalPaid.updateAndGet(v -> v + p.getAmount()));
-
-                balance = totalAmount.get() - totalPaid.get();
-            }
-
-            vendor.setInvoices(invoices.getData());
-            vendor.setPayments(payments);
-            vendor.setBalance(balance);
-
-            updated.add(vendor);
-        }
-
-        vendors.setData(updated);
+        ResponseDTO<List<Vendor>> vendors = repository.getAll();
+        List<Vendor> updatedVendors = updateVendors(vendors);
+        vendors.setData(updatedVendors);
         return vendors;
     }
 
     @Override
     public ResponseDTO<List<Vendor>> getAll(Integer page, Integer offset) {
-        return repository.getAll(page, offset);
+        ResponseDTO<List<Vendor>> vendors = repository.getAll(page, offset);
+        List<Vendor> updatedVendors = updateVendors(vendors);
+        vendors.setData(updatedVendors);
+        return vendors;
     }
 
     @Override
@@ -99,4 +75,34 @@ public class VendorService implements IVendorService {
         repository.delete(id);
     }
 
+    private List<Vendor> updateVendors(ResponseDTO<List<Vendor>> vendors) {
+        List<Vendor> updated = new ArrayList<>();
+
+        for (Vendor vendor : vendors.getData()) {
+            ResponseDTO<List<Invoice>> invoices = invoiceRepository.getInvoicesByVendor(vendor.getId());
+            List<Payment> payments = new ArrayList<>();
+
+            double balance = 0D;
+
+            for (Invoice invoice : invoices.getData()) {
+                AtomicReference<Double> totalAmount = new AtomicReference<>(0D);
+                AtomicReference<Double> totalPaid = new AtomicReference<>(0D);
+
+                ResponseDTO<List<Payment>> paymentsList = paymentRepository.getPaymentsByInvoiceId(invoice.getId());
+                payments.addAll(paymentsList.getData());
+
+                invoices.getData().forEach((i) -> totalAmount.updateAndGet(v -> v + i.getAmount()));
+                payments.forEach((p) -> totalPaid.updateAndGet(v -> v + p.getAmount()));
+
+                balance = totalAmount.get() - totalPaid.get();
+            }
+
+            vendor.setInvoices(invoices.getData());
+            vendor.setPayments(payments);
+            vendor.setBalance(balance);
+
+            updated.add(vendor);
+        }
+        return updated;
+    }
 }
