@@ -26,7 +26,4 @@ public class Vendor {
 
     @Transient
     private List<Invoice> invoices;
-
-    @Transient
-    private List<Payment> payments;
 }
