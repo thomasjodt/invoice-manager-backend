@@ -22,7 +22,7 @@ public class PaymentRepository implements IPaymentRepository {
 
     @Override
     public ResponseDTO<List<Payment>> getAll() {
-        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment p ORDER BY p.paymentDate", Payment.class);
+        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment p ORDER BY p.id DESC", Payment.class);
         List<Payment> payments = q.getResultList();
         Integer count = getCount();
 
@@ -35,7 +35,7 @@ public class PaymentRepository implements IPaymentRepository {
 
     @Override
     public ResponseDTO<List<Payment>> getAll(Integer limit, Integer offset) {
-        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment p ORDER BY p.paymentDate", Payment.class);
+        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment p ORDER BY p.id DESC", Payment.class);
         Integer count = getCount();
 
         q.setMaxResults(limit);
@@ -107,7 +107,7 @@ public class PaymentRepository implements IPaymentRepository {
 
     @Override
     public ResponseDTO<List<Payment>> getPaymentsByInvoiceId(Long id) {
-        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment p WHERE p.invoice.id = :id ORDER BY p.paymentDate", Payment.class);
+        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment p WHERE p.invoice.id = :id ORDER BY p.id DESC", Payment.class);
         q.setParameter("id", id);
 
         List<Payment> payments = q.getResultList();
@@ -122,7 +122,7 @@ public class PaymentRepository implements IPaymentRepository {
 
     @Override
     public ResponseDTO<List<Payment>> getPaymentsByInvoiceId(Long id, Integer limit, Integer offset) {
-        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment p WHERE p.invoice.id = :id ORDER BY p.paymentDate", Payment.class);
+        TypedQuery<Payment> q = em.createQuery("SELECT p FROM Payment p WHERE p.invoice.id = :id ORDER BY p.id DESC", Payment.class);
         q.setParameter("id", id);
         Integer count = getCountByInvoiceId(id);
 

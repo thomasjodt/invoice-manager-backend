@@ -88,7 +88,10 @@ public class VendorRepository implements IVendorRepository {
 
     @Override
     public ResponseDTO<List<Vendor>> findByName(String name) {
-         TypedQuery<Vendor> q  = em.createQuery("SELECT v FROM Vendor v WHERE LOWER(v.fullName) LIKE LOWER(:vendorName) ORDER BY v.name ASC", Vendor.class);
+         TypedQuery<Vendor> q  = em.createQuery(
+             "SELECT v FROM Vendor v WHERE LOWER(v.fullName) LIKE LOWER(:vendorName) ORDER BY v.name ASC",
+             Vendor.class
+         );
          q.setParameter("vendorName", name);
         Integer count = getCountByName(name);
 
@@ -99,7 +102,10 @@ public class VendorRepository implements IVendorRepository {
 
     @Override
     public ResponseDTO<List<Vendor>> findByName(String name, Integer limit, Integer offset) {
-        TypedQuery<Vendor> q  = em.createQuery("SELECT v FROM Vendor v WHERE LOWER(v.fullName) LIKE LOWER(:vendorName) ORDER BY v.name ASC", Vendor.class);
+        TypedQuery<Vendor> q  = em.createQuery(
+            "SELECT v FROM Vendor v WHERE LOWER(v.fullName) LIKE LOWER(:vendorName) ORDER BY v.name ASC",
+            Vendor.class
+        );
         q.setParameter("vendorName", name);
         Integer count = getCountByName(name);
 
@@ -137,6 +143,12 @@ public class VendorRepository implements IVendorRepository {
     }
 
     public Integer getCountByName(String name) {
-        return em.createQuery("SELECT COUNT(v) FROM Vendor v WHERE LOWER(v.fullName) LIKE LOWER(:vendorName)", Long.class).setParameter("vendorName", name).getSingleResult().intValue();
+        return em.createQuery(
+            "SELECT COUNT(v) FROM Vendor v WHERE LOWER(v.fullName) LIKE LOWER(:vendorName)",
+                Long.class
+            )
+            .setParameter("vendorName", name)
+            .getSingleResult()
+            .intValue();
     }
 }
